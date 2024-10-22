@@ -1,0 +1,26 @@
+<form method="POST" action="{% url 'backtest' %}">
+  {% csrf_token %}
+  <label for="initial_investment">Initial Investment:</label>
+  <input
+    type="number"
+    name="initial_investment"
+    value="{{ initial_investment }}"
+    required
+  />
+
+  <label for="symbol">Stock Symbol:</label>
+  <input type="text" name="symbol" value="{{ symbol }}" required />
+
+  <button type="submit">Run Backtest</button>
+</form>
+
+{% if result %}
+<h2>Backtest Results:</h2>
+<p>Status: {{ result.status }}</p>
+{% if result.status == 'success' %}
+<p>Total Return: {{ result.total_return }}</p>
+<p>Number of Trades: {{ result.trades }}</p>
+<p>Maximum Drawdown: {{ result.max_drawdown }}</p>
+{% else %}
+<p>Error: {{ result.message }}</p>
+{% endif %} {% endif %}

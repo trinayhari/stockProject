@@ -1,0 +1,49 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main  # Change to your deployment branch if necessary
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # Specify your Python version
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Build Docker image
+        run: |
+          docker build -t stockproject .
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Tag Docker image
+        run: |
+          docker tag stockproject:latest <your-aws-account-id>.dkr.ecr.<your-region>.amazonaws.com/stockproject:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push <your-aws-account-id>.dkr.ecr.<your-region>.amazonaws.com/stockproject:latest
+
+      - name: Deploy to AWS Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: <your-region>
+          APPLICATION_NAME: stockProject
+          ENVIRONMENT_NAME: <your-eb-environment-name>
+        run: |
+          eb init $APPLICATION_NAME --region $AWS_REGION
+          eb deploy $ENVIRONMENT_NAME
